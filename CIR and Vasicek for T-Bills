@@ -1,0 +1,64 @@
+import numpy as np
+
+# ==========================
+# 1. تعریف پارامترها
+# ==========================
+# پارامترهای اولیه برای مدل Vasicek یا CIR
+kappa = 0.15      # نرخ بازگشت به میانگین
+theta = 0.05      # میانگین بلندمدت نرخ بهره
+sigma = 0.02      # نوسانات نرخ بهره
+r0 = 0.03         # نرخ بهره اولیه
+T = 5.0           # زمان تا سررسید (به سال)
+face_value = 1000 # ارزش اسمی اوراق
+
+# ==========================
+# 2. روش Vasicek: محاسبه A(T) و B(T)
+# ==========================
+def vasicek_bond_price(kappa, theta, sigma, r0, T, face_value):
+    B_T = (1 - np.exp(-kappa * T)) / kappa
+    A_T = np.exp((theta - sigma**2 / (2 * kappa**2)) * (B_T - T) -
+                 (sigma**2 / (4 * kappa)) * B_T**2)
+    P = A_T * np.exp(-B_T * r0) * face_value
+    return P
+
+vasicek_price = vasicek_bond_price(kappa, theta, sigma, r0, T, face_value)
+print(f"Vasicek Bond Price: {vasicek_price:.2f}")
+
+# ==========================
+# 3. روش CIR: محاسبه A(T) و B(T)
+# ==========================
+def cir_bond_price(kappa, theta, sigma, r0, T, face_value):
+    h = np.sqrt(kappa**2 + 2 * sigma**2)
+    A_T = ((2 * h * np.exp((kappa + h) * T / 2)) /
+           (2 * h + (kappa + h) * (np.exp(h * T) - 1)))**(2 * kappa * theta / sigma**2)
+    B_T = (2 * (np.exp(h * T) - 1)) / (2 * h + (kappa + h) * (np.exp(h * T) - 1))
+    P = A_T * np.exp(-B_T * r0) * face_value
+    return P
+
+cir_price = cir_bond_price(kappa, theta, sigma, r0, T, face_value)
+print(f"CIR Bond Price: {cir_price:.2f}")
+
+# ==========================
+# 4. شبیه‌سازی مونت‌کارلو
+# ==========================
+def monte_carlo_bond_price(kappa, theta, sigma, r0, T, face_value, paths=10000, N=1000):
+    dt = T / N
+    rates = np.zeros((N + 1, paths))
+    rates[0, :] = r0
+
+    for t in range(N):
+        Z = np.random.randn(paths)
+        if True:  # برای Vasicek
+            rates[t + 1, :] = (rates[t, :] +
+                               kappa * (theta - rates[t, :]) * dt +
+                               sigma * np.sqrt(dt) * Z)
+        rates[t + 1, :] = np.maximum(rates[t + 1, :], 0)  # حفظ غیرمنفی بودن
+
+    # محاسبه مقدار تنزیل‌شده
+    discount_factors = np.exp(-np.sum(rates[:-1, :] * dt, axis=0))
+    bond_prices = discount_factors * face_value
+
+    return np.mean(bond_prices), np.std(bond_prices) / np.sqrt(paths)
+
+mc_price, mc_error = monte_carlo_bond_price(kappa, theta, sigma, r0, T, face_value)
+print(f"Monte Carlo Bond Price: {mc_price:.2f} ± {mc_error:.2f}")
