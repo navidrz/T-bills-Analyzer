@@ -126,6 +126,7 @@ class VasicekModel:
         # Implementation as described earlier
         ...
 ```
+![image](https://github.com/navidrz/T-bills-Analyzer/blob/e93e67fe1a9ce24d5e800bdad30c11f14a043531/newplot%20(13).png)
 
 #### **۴.۳. قیمت‌گذاری اوراق**
 
@@ -152,6 +153,7 @@ class BondPricer:
         # Implementation as described earlier
         ...
 ```
+![image](https://github.com/navidrz/T-bills-Analyzer/blob/e93e67fe1a9ce24d5e800bdad30c11f14a043531/newplot%20(12).png)
 
 #### **پایان روایت**
 
